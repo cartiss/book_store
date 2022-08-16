@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.validators import MaxValueValidator
 from django.db import models
 
 
@@ -15,6 +16,7 @@ class Book(models.Model):
 
 class UserBookRelation(models.Model):
     RATE_CHOICES = (
+        (0, 'Bad'),
         (1, 'Ok'),
         (2, 'Fine'),
         (3, 'Good'),
