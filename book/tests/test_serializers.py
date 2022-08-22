@@ -11,7 +11,7 @@ class BookSerializerTestCase(TestCase):
         self.user1 = User.objects.create(username='test_user1')
         self.user2 = User.objects.create(username='test_user2')
         self.user3 = User.objects.create(username='test_user3')
-        self.book1 = Book.objects.create(name='Test book 1', price=100, author='Author')
+        self.book1 = Book.objects.create(name='Test book 1', price=100, author='Author', owner=self.user1)
         self.book2 = Book.objects.create(name='Test book 2', price=150, author='Author2')
 
     def test_ok(self):
@@ -23,11 +23,9 @@ class BookSerializerTestCase(TestCase):
         UserBookRelation.objects.create(user=self.user2, book=self.book2, like=True, rate=6)
         UserBookRelation.objects.create(user=self.user3, book=self.book2, like=False, rate=2)
 
-        books = Book.objects.all().annotate(annotated_likes=Count(Case(When(userbookrelation__like=True, then=1))),
-                                            rating=Avg('userbookrelation__rate')),
+        books = Book.objects.all().annotate(annotated_likes=Count(Case(When(userbookrelation__like=True, then=1)))).order_by('id')
 
         data = BooksSerializer(books, many=True).data
-        print(data)
         expected_data = [
             {
                 'id': self.book1.id,
@@ -36,6 +34,7 @@ class BookSerializerTestCase(TestCase):
                 'author': 'Author',
                 'annotated_likes': 3,
                 'rating': '2.00',
+                'owner_name': 'test_user1',
             },
             {
                 'id': self.book2.id,
@@ -43,8 +42,8 @@ class BookSerializerTestCase(TestCase):
                 'price': 150,
                 'author': 'Author2',
                 'annotated_likes': 2,
-                'rating': '2.67'
+                'rating': '2.67',
+                'owner_name': '',
             },
         ]
-        print(data)
         self.assertEqual(expected_data, data)
